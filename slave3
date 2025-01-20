@@ -1,0 +1,41 @@
+pipeline {
+    agent {
+        label 'slave3'
+    }
+    stages {
+        stage('Prepare Environment') {
+            steps {
+                sh '''
+                sudo yum install docker -y
+                sudo systemctl start docker
+                sudo systemctl enable docker
+                '''
+            }
+        }
+        stage('Pull SonarQube Image') {
+            steps {
+                // sudo docker stop sonarqube
+                // sudo docker rm -f sonarqube
+                sh 'sudo docker pull sonarqube:latest'
+            }
+        }
+        stage('Run SonarQube Container') {
+            steps {
+                sh 'sudo docker run -itd --name sonarqube -p 9000:9000 sonarqube:latest'
+            }
+        }
+        stage('Verify SonarQube') {
+            steps {
+                sh 'sudo docker ps'
+            }
+        }
+    }
+    post {
+        success {
+            echo 'SonarQube installed and running successfully on slave3 node!'
+        }
+        failure {
+            echo 'Failed to install SonarQube. Check the logs for more details.'
+        }
+    }
+}
